@@ -11,16 +11,20 @@ from flask import Flask, send_file, flash, send_from_directory, request, redirec
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 
-SAGEWS = os.path.dirname(os.path.abspath(__file__))
+PEARLWS = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
 CORS(app)
-app.config['SAGE'] = os.path.join(SAGEWS, "..")
-app.config['UPLOAD_FOLDER'] = os.path.join(app.config['SAGE'], "data")
+app.config['PEARL'] = os.path.join(PEARLWS, "..")
+app.config['UPLOAD_FOLDER'] = os.path.join(app.config['PEARL'], "data")
 app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024   #maximum of 8MB
+app.config['MAX_NUMBER_TRACE_FILES'] = 30
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in set(['scf','abi','ab1','ab!','ab', 'json', 'fa'])
+def allowed_trace_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in set(['scf','abi','ab1','ab!','ab'])
+
+def allowed_fa_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in set(['fa'])
 
 @app.route('/api/v1/upload', methods=['POST'])
 def upload_file():
@@ -33,53 +37,47 @@ def upload_file():
             os.makedirs(sf)
 
         # Experiment
+        queryFileNames = []
         if 'showExample' in request.form.keys():
-            fexpname = os.path.join(SAGEWS, "sample.abi")
-            genome = os.path.join(SAGEWS, "sample.fa")
+            for i in range(1, 5): # For testing reduce from 10 to 5
+                queryFileNames.append(os.path.join(PEARLWS, "sample_" + str(i) + ".abi"))
+            refFileName = os.path.join(PEARLWS, "sample.fa")
         else:
-            if 'queryFile' not in request.files:
-                return jsonify(errors = [{"title": "Chromatogram file is missing!"}]), 400
-            fexp = request.files['queryFile']
-            if fexp.filename == '':
-                return jsonify(errors = [{"title": "Chromatogram file name is missing!"}]), 400
-            if not allowed_file(fexp.filename):
-                return jsonify(errors = [{"title": "Chromatogram file has incorrect file type!"}]), 400
-            fexpname = os.path.join(sf, "sage_" + uuidstr + "_" + secure_filename(fexp.filename))
-            fexp.save(fexpname)
+            if "queryFilesCount" not in request.form.keys():
+                return jsonify(errors=[{"title": "Illegal request: queryFilesCount is missing!"}]), 400
+            traceNr = int(request.form["queryFilesCount"])
+            if traceNr < 0:
+                traceNr = 0
+            if traceNr > app.config['MAX_NUMBER_TRACE_FILES']:
+                traceNr = app.config['MAX_NUMBER_TRACE_FILES']
+            for i in range(0, traceNr):
+                if 'queryFile_' + str(i) not in request.files:
+                    return jsonify(errors = [{"title": "Chromatogram file " + str(i) + " is missing!"}]), 400
+                queryFile = request.files['queryFile_' + str(i)]
+                if queryFile.filename == '':
+                    return jsonify(errors = [{"title": "Chromatogram file " + str(i) + " name is missing!"}]), 400
+                if not allowed_trace_file(queryFile.filename):
+                    return jsonify(errors = [{"title": "Chromatogram file \"" + queryFile.filename + "\" has incorrect file type!"}]), 400
+                queryFileName = os.path.join(sf, "pearl_" + uuidstr + "_" + secure_filename(queryFile.filename))
+                queryFileNames.append(queryFileName)
+                queryFile.save(queryFileName)
 
-            # Genome
-            if 'genome' in request.form.keys():
-                genome = request.form['genome']
-                if genome == '':
-                    return jsonify(errors = [{"title": "Genome index is missing!"}]), 400
-                genome = os.path.join(app.config['SAGE'], "fm", genome)
-            elif 'fastaFile' in request.files.keys():
-                fafile = request.files['fastaFile']
-                if fafile.filename == '':
-                    return jsonify(errors = [{"title": "Fasta file is missing!"}]), 400
-                if not allowed_file(fafile.filename):
-                    return jsonify(errors = [{"title": "Fasta file has incorrect file type!"}]), 400
-                genome = os.path.join(sf, "sage_" + uuidstr + "_" + secure_filename(fafile.filename))
-                fafile.save(genome)
-            elif 'chromatogramFile' in request.files.keys():
-                wtabfile = request.files['chromatogramFile']
-                if wtabfile.filename == '':
-                    return jsonify(errors = [{"title": "Wildtype Chromatogram file is missing!"}]), 400
-                if not allowed_file(wtabfile.filename):
-                    return jsonify(errors = [{"title": "Wildtype Chromatogram file has incorrect file type!"}]), 400
-                genome = os.path.join(sf, "sage_" + uuidstr + "_" + secure_filename(wtabfile.filename))
-                wtabfile.save(genome)
-            else:
-                return jsonify(errors = [{"title": "No input reference file provided!"}]), 400
+            refFile = request.files['referenceFile']
+            if refFile.filename == '':
+                return jsonify(errors = [{"title": "Fasta file is missing!"}]), 400
+            if not allowed_fa_file(refFile.filename):
+                return jsonify(errors = [{"title": "Fasta file has incorrect file type!"}]), 400
+            refFileName = os.path.join(sf, "pearl_" + uuidstr + "_" + secure_filename(refFile.filename))
+            refFile.save(refFileName)
 
         # Run sage
-        outfile = os.path.join(sf, "sage_" + uuidstr + ".json")
-        logfile = os.path.join(sf, "sage_" + uuidstr + ".log")
-        errfile = os.path.join(sf, "sage_" + uuidstr + ".err")
+        outfile = os.path.join(sf, "pearl_" + uuidstr)
+        logfile = os.path.join(sf, "pearl_" + uuidstr + ".log")
+        errfile = os.path.join(sf, "pearl_" + uuidstr + ".err")
         with open(logfile, "w") as log:
             with open(errfile, "w") as err:
                 try: 
-                    return_code = call(['tracy', 'align', '-g', genome,'-o', outfile, fexpname], stdout=log, stderr=err)
+                    return_code = call(['tracy', 'assemble', '-r', refFileName, '-o', outfile] + queryFileNames, stdout=log, stderr=err)
                 except OSError as e:
                     if e.errno == os.errno.ENOENT:
                         return jsonify(errors = [{"title": "Binary ./tracy not found!"}]), 400
@@ -89,13 +87,9 @@ def upload_file():
             errInfo = "!"
             with open(errfile, "r") as err:
                 errInfo = ": " + err.read()
-            return jsonify(errors = [{"title": "Error in running sage" + errInfo}]), 400
-        return jsonify(data = json.loads(open(outfile).read()))
+            return jsonify(errors = [{"title": "Error in running pearl" + errInfo}]), 400
+        return jsonify(data = json.loads(open(os.path.join(sf, "pearl_" + uuidstr + ".json")).read()))
     return jsonify(errors = [{"title": "Error in handling POST request!"}]), 400
-
-@app.route('/api/v1/genomeindex', methods=['POST'])
-def genomeind():
-    return send_from_directory(os.path.join(SAGEWS, "../fm"),"genomeindexindex.json"), 200
 
 if __name__ == '__main__':
     app.run(host = '0.0.0.0', port=3300, debug = True, threaded=True)

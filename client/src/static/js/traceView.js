@@ -83,7 +83,7 @@ function hideElement(element) {
 
 document.addEventListener("DOMContentLoaded", function() {
     resetGlobalValues();
-    var trv = document.getElementById('traceView');
+    var trv = document.getElementById('result-data');
     trv.innerHTML = createButtons();
 
     var navBwWinButton = document.getElementById('traceView-nav-bw-win')

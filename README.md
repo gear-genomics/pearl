@@ -52,6 +52,6 @@ Install the dependencies:
 
 Start the client:
 
-`cd PATH_TO_pearl/pearl/client`
+`cd PATH_TO_PEARL/pearl/client`
 
 `npm run dev`

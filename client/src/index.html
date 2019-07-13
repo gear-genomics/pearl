@@ -42,42 +42,19 @@
     <div class="tab-content" id="main-tabs">
       <div class="tab-pane show active" id="input-tab">
         <div class="form-group">
-          <label for="inputFile">
-            Chromatogram file (<code>.scf</code>, <code>.abi</code>, <code>.ab1</code>, <code>.ab!</code> or <code>.ab</code>)
+          <label for="inputFiles">
+            Chromatogram files (<code>.scf</code>, <code>.abi</code>, <code>.ab1</code>, <code>.ab!</code> or <code>.ab</code>)
           </label>
-          <input type="file" class="form-control-file" id="inputFile">
+          <input type="file" multiple class="form-control-file" id="inputFiles">
         </div>
+        <br />
         <div class="form-group">
-          <label for="leftTrim">Left Chromatogram Trim Size</label>
-          <input type="number" class="form-control" id="leftTrim" value="50" min="1" max="1000">
+          <label for="referenceFile">
+            Reference FASTA file (single sequence, <code>.fa</code>)
+          </label>
+          <input type="file" class="form-control-file" id="referenceFile">
         </div>
-        <div class="form-group">
-          <label for="rightTrim">Right Chromatogram Trim Size</label>
-          <input type="number" class="form-control" id="rightTrim" value="50" min="1" max="1000">
-        </div>
-
-        <div class="form-group">
-          <label>Align to</label>
-          <div class="nav nav-pills mb-3" id="target-tabs">
-            <a class="nav-link active show" id="target-genome-tab" data-toggle="pill" href="#target-genome">Genome</a>
-            <a class="nav-link" id="target-fasta-tab" data-toggle="pill" href="#target-fasta">FASTA file (single sequence)</a>
-            <a class="nav-link" id="target-chromatogram-tab" data-toggle="pill" href="#target-chromatogram">Chromatogram file (wildtype)</a>
-          </div>
-          <div class="tab-content" style="height: 2.5rem;">
-            <div class="tab-pane fade active show" id="target-genome">
-              <select class="form-control" id="genome-select">
-                <option value=0 selected>Genomes not loaded!</option>
-              </select>
-            </div>
-            <div class="tab-pane fade" id="target-fasta">
-              <input type="file" class="form-control-file" id="targetFileFasta">
-            </div>
-            <div class="tab-pane fade" id="target-chromatogram">
-              <input type="file" class="form-control-file" id="targetFileChromatogram">
-            </div>
-          </div>
-        </div>
-
+        <br />
         <button type="submit" class="btn btn-outline-primary" id="btn-submit">
           <i class="fas fa-rocket" style="margin-right: 5px;"></i>
           Launch Analysis
@@ -96,22 +73,28 @@
           <i class="fas fa-fire"></i>
           <span id="error-message"></span>
         </div>
-        <div id="traceView"></div>
+        <div id="result-data"></div>
       </div>
 
       <div class="tab-pane" id="help-tab">
         <h4>Application Description</h4>
         <p> Pearl is a tool to patch a DNA references with several sanger trace files. The 
-            reference must be a fasta file (*.fa) and is displayed below the trace view.</p>
+            reference must be a fasta file (*.fa) and is displayed on top of the trace view.</p>
         <h4>Accepted Input</h4>
         <p> The trace files can be provided in abi or scf trace format (*.scf, *.abi, *.ab1, 
-            *.ab! and *.ab). The reference can be a genome selecte from the dropdown menu, an 
-            uploaded as a fasta file (*.fa) or a other trace file (*.scf, *.abi, *.ab1, *.ab! 
-            and *.ab).</p>
+            *.ab! and *.ab). The reference must be a fasta file (*.fa).</p>
         <h4>Sample Data</h4>
-        <p> The "Show Example" button loads an sample trace file 
-            <a href="static/bin/sample.abi">(click to download file)</a>
-            and aligns it to a sample reference fasta file
+        <p> The "Show Example" button loads nine sample trace files (click to download file  
+            <a href="static/bin/sample_1.abi">1,</a> 
+            <a href="static/bin/sample_2.abi">2,</a> 
+            <a href="static/bin/sample_3.abi">3,</a> 
+            <a href="static/bin/sample_4.abi">4,</a> 
+            <a href="static/bin/sample_5.abi">5,</a> 
+            <a href="static/bin/sample_6.abi">6,</a> 
+            <a href="static/bin/sample_7.abi">7,</a> 
+            <a href="static/bin/sample_8.abi">8,</a> 
+            <a href="static/bin/sample_9.abi">9</a> 
+            ) and aligns it to a sample reference fasta file
             <a href="static/bin/sample.fa">(click to download file)</a>.
         </p>
       </div>
@@ -155,7 +138,6 @@
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <script src="static/js/traceView.js"></script>
   <script src="static/js/pearl.js"></script>
-  <script src="static/js/genomeIndexSel.js"></script>
 </body>
 
 </html>

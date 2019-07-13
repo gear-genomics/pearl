@@ -2,11 +2,6 @@ const API_URL = process.env.API_URL
 
 var traceView = require('./traceView');
 
-$('#mainTab a').on('click', function(e) {
-  e.preventDefault()
-  $(this).tab('show')
-})
-
 const resultLink = document.getElementById('link-results')
 
 const submitButton = document.getElementById('btn-submit')
@@ -21,6 +16,19 @@ const targetGenomes = document.getElementById('target-genome')
 const targetTabs = document.getElementById('target-tabs')
 const resultInfo = document.getElementById('result-info')
 const resultError = document.getElementById('result-error')
+
+$('#mainTab a').on('click', function(e) {
+  e.preventDefault()
+  $(this).tab('show')
+})
+
+function showElement(element) {
+  element.classList.remove('d-none')
+}
+
+function hideElement(element) {
+  element.classList.add('d-none')
+}
 
 function showExample() {
   run("example")
@@ -37,24 +45,14 @@ function run(stat) {
   if (stat == "example") {
     formData.append('showExample', 'showExample')
   } else {
-    formData.append('queryFile', inputFile.files[0])
-    const lTrim = Number.parseInt(leftTrim.value, 10)
-    const rTrim = Number.parseInt(rightTrim.value, 10)
-    formData.append('leftTrim', lTrim)
-    formData.append('rightTrim', rTrim)
-    const target = targetTabs.querySelector('a.active').id
-
-    if (target.startsWith('target-genome')) {
-      const genome = targetGenomes.querySelector('option:checked').value
-      formData.append('genome', genome)
-    } else if (target.startsWith('target-fasta')) {
-      formData.append('fastaFile', targetFastaFile.files[0])
-    } else if (target.startsWith('target-chromatogram')) {
-      formData.append('chromatogramFile', targetChromatogramFile.files[0])
+    formData.append('queryFilesCount', inputFiles.files.length)
+    for (var i = 0 ; i < inputFiles.files.length ; i++) {
+        formData.append('queryFile_' + i, inputFiles.files[i])
     }
+    formData.append('referenceFile', referenceFile.files[0])
   }
   
-  traceView.deleteContent()
+  //traceView.deleteContent()
   hideElement(resultError)
   traceView.deleteContent()
   showElement(resultInfo)
@@ -74,25 +72,29 @@ function run(stat) {
           .join('; ')
       }
       hideElement(resultInfo)
-      traceView.deleteContent()
+      //traceView.deleteContent()
       showElement(resultError)
       resultError.querySelector('#error-message').textContent = errorMessage
     })
 }
 
 function handleSuccess(res) {
+//    alert(JSON.stringify(res.data))
+    alert(res.data.keys)
+    for(var obj in res){
+        if(res.hasOwnProperty(obj)){
+            for(var prop in res[obj]){
+                if(res[obj].hasOwnProperty(prop)){
+                   alert(prop + ':' + res[obj][prop]);
+                }
+            }
+        }
+    }
     hideElement(resultInfo)
     hideElement(resultError)
-    traceView.displayData(res.data)
+    // traceView.displayData(res.data)
 }
 
-function showElement(element) {
-  element.classList.remove('d-none')
-}
-
-function hideElement(element) {
-  element.classList.add('d-none')
-}
 
 
 
