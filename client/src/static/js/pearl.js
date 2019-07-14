@@ -16,6 +16,9 @@ const targetGenomes = document.getElementById('target-genome')
 const targetTabs = document.getElementById('target-tabs')
 const resultInfo = document.getElementById('result-info')
 const resultError = document.getElementById('result-error')
+const resultData = document.getElementById('result-data')
+
+window.data = ""
 
 $('#mainTab a').on('click', function(e) {
   e.preventDefault()
@@ -61,7 +64,8 @@ function run(stat) {
     .post(`${API_URL}/upload`, formData)
     .then(res => {
 	if (res.status === 200) {
-          handleSuccess(res.data)
+	      window.data = res.data.data
+          handleSuccess()
       }
     })
     .catch(err => {
@@ -78,23 +82,160 @@ function run(stat) {
     })
 }
 
-function handleSuccess(res) {
-//    alert(JSON.stringify(res.data))
-    alert(res.data.keys)
-    for(var obj in res){
-        if(res.hasOwnProperty(obj)){
-            for(var prop in res[obj]){
-                if(res[obj].hasOwnProperty(prop)){
-                   alert(prop + ':' + res[obj][prop]);
+function handleSuccess() {
+    // Create a user edited sequence from reference or alignment
+    if ((window.data.hasOwnProperty("msa")) && (window.data.msa.length > 0)) {
+        for (var i = 0 ; i < window.data.msa.length ; i++) {
+            if ((window.data.msa[i].hasOwnProperty("reference")) &&
+                (window.data.msa[i].reference == true) &&
+                (window.data.msa[i].hasOwnProperty("align"))) {
+                window.data["userEditedSequence"] = window.data.msa[i].align
+            }
+        }
+        if ((!(window.data.hasOwnProperty("userEditedSequence"))) &&
+            (window.data.hasOwnProperty("gappedConsensus"))) {
+            window.data["userEditedSequence"] = window.data.gappedConsensus
+        }
+    }
+    // Create a control sequence for color coding and finding points of interest
+    //   N - no information, only reference data available
+    //   G - good, all traces agree on same base
+    //   C - conflict, some traces suggest other bases
+    //   M - mismatch, traces agree on different base then reference
+
+    // First paint it N or M based on reference and consensus
+    if ((window.data.hasOwnProperty("userEditedSequence")) &&
+        (window.data.hasOwnProperty("gappedConsensus"))) {
+        var colSeq = ""
+        for (var i = 0; i < window.data.userEditedSequence.length ; i++) {
+            if (window.data.userEditedSequence.charAt(i) == window.data.gappedConsensus.charAt(i)) {
+                if (window.data.userEditedSequence.charAt(i) == "-") {
+                    colSeq += "M"  // M - mismatch
+                } else {
+                    colSeq += "N"  // N - no information
+                }
+            } else {
+                colSeq += "M"  // M - mismatch
+            }
+        }
+        window.data["controlSequence"] = colSeq
+    }
+    // Loop through the alignments without reference to set C and G
+    if ((window.data.hasOwnProperty("msa")) && (window.data.msa.length > 0) &&
+        (window.data.hasOwnProperty("userEditedSequence")) &&
+        (window.data.hasOwnProperty("controlSequence")) &&
+        (window.data.hasOwnProperty("gappedConsensus"))) {
+        var colSeq = ""
+        for (var i = 0; i < window.data.userEditedSequence.length ; i++) {
+            var baseCode = "n" // n - not set
+            var baseCons = "0"
+            for (var k = 0 ; k < window.data.msa.length ; k++) {
+                 if (window.data.msa[k].reference == false) {
+                     var base = window.data.msa[k].align.charAt(i)
+                     if (baseCode == "n") {
+                         if (base != "-") {
+                             baseCode = "G"
+                         }
+                         baseCons = base
+                     }
+                     if ((baseCons != base) && (base != "-")) { // Fixme: "-" should trigger C if inside seq
+                         baseCode = "C"
+                     }
+                 }
+            }
+            if (((baseCode == "G") || (baseCode == "C")) && (window.data.controlSequence.charAt(i) == "N")) {
+                colSeq += baseCode
+            } else {
+                colSeq += window.data.controlSequence.charAt(i)
+            }
+        }
+        window.data.controlSequence = colSeq
+    }
+
+
+
+
+
+
+    //alert(JSON.stringify(window.data))
+    for(var obj in window.data.msa){
+        if(window.data.msa.hasOwnProperty(obj)){
+            for(var prop in window.data[obj]){
+                if(window.data[obj].hasOwnProperty(prop)){
+                 //  alert(prop + ':' + window.data[obj][prop]);
                 }
             }
         }
     }
     hideElement(resultInfo)
     hideElement(resultError)
+    repaintData()
     // traceView.displayData(res.data)
 }
 
+//
+function repaintData() {
+    var retHtml = ""
+    var startZeroOne = 0
+    var outSeq = "\n"
+    var seq = window.data.userEditedSequence
+    var contr = window.data.controlSequence
+    var digits = 0;
+    var lastBaseMark = ".";
+    var openMark = "";
+    var closeMark = "";
 
+    for (var i = seq.length; i > 1 ; i = i / 10) {
+        digits++;
+    }
+    digits++;
 
+    for (var i = 0; i < seq.length ; i++) {
+        if (i % 100 == 0) {
+            if (i != 0) {
+                outSeq += closeMark + "\n";
+            }
+            var pIco = i + startZeroOne;
+            var iStr = pIco.toString();
+            for (var j = digits; j > iStr.length ; j--) {
+                outSeq += " ";
+            }
+            outSeq += iStr + "  " + openMark;
+         } else {
+            if (i % 10 == 0) {
+                outSeq += " ";
+            }
+        }
+        // Place the color coding
+        //   N - no information, only reference data available
+        //   G - good, all traces agree on same base
+        //   C - conflict, some traces suggest other bases
+        //   M - mismatch, traces agree on different base then reference
+
+        if (contr.charAt(i) != lastBaseMark) {
+            if (contr.charAt(i) == "N") {
+                openMark = '<a style="background-color:#CCCCCC">'; // grey
+                closeMark = "</a>";
+            }
+            if (contr.charAt(i) == "G") {
+                openMark = '<a style="background-color:#33CC33">'; // green
+                closeMark = "</a>";
+            }
+            if (contr.charAt(i) == "C") {
+                openMark = '<a style="background-color:#FF9900">'; // orange
+                closeMark = "</a>";
+            }
+            if (contr.charAt(i) == "M") {
+                openMark = '<a style="background-color:#FF0000">'; // red
+                closeMark = "</a>";
+            }
+            lastBaseMark = contr.charAt(i);
+            outSeq += closeMark + openMark;
+        }
+        outSeq += seq.charAt(i);
+    }
+    retHtml = '<pre id="align-overview"> ' + outSeq + closeMark + "\n</pre>";
+
+    resultData.innerHTML = retHtml
+}
 
