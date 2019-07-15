@@ -8,12 +8,13 @@ const submitButton = document.getElementById('btn-submit')
 submitButton.addEventListener('click', showUpload)
 const exampleButton = document.getElementById('btn-example')
 exampleButton.addEventListener('click', showExample)
+const saveButton = document.getElementById('btn-save-Json')
+saveButton.addEventListener('click', saveJsonFile)
+const loadJFile = document.getElementById('inputJsonFile')
+loadJFile.addEventListener('change', loadJsonFile, false);
 
-const inputFile = document.getElementById('inputFile')
-const targetFastaFile = document.getElementById('targetFileFasta')
-const targetChromatogramFile = document.getElementById('targetFileChromatogram')
-const targetGenomes = document.getElementById('target-genome')
-const targetTabs = document.getElementById('target-tabs')
+const inputFiles = document.getElementById('inputFiles')
+const referenceFile = document.getElementById('referenceFile')
 const resultInfo = document.getElementById('result-info')
 const resultError = document.getElementById('result-error')
 const resultData = document.getElementById('result-data')
@@ -102,6 +103,7 @@ function handleSuccess() {
     //   G - good, all traces agree on same base
     //   C - conflict, some traces suggest other bases
     //   M - mismatch, traces agree on different base then reference
+    //   E - edited, the base was entered manually by the user
 
     // First paint it N or M based on reference and consensus
     if ((window.data.hasOwnProperty("userEditedSequence")) &&
@@ -211,14 +213,15 @@ function repaintData() {
         //   G - good, all traces agree on same base
         //   C - conflict, some traces suggest other bases
         //   M - mismatch, traces agree on different base then reference
+        //   E - edited, the base was entered manually by the user
 
         if (contr.charAt(i) != lastBaseMark) {
             if (contr.charAt(i) == "N") {
-                openMark = '<a style="background-color:#CCCCCC">'; // grey
+                openMark = '<a style="background-color:#F2F2F2">'; // grey
                 closeMark = "</a>";
             }
             if (contr.charAt(i) == "G") {
-                openMark = '<a style="background-color:#33CC33">'; // green
+                openMark = '<a style="background-color:#CCFFCC">'; // green
                 closeMark = "</a>";
             }
             if (contr.charAt(i) == "C") {
@@ -227,6 +230,10 @@ function repaintData() {
             }
             if (contr.charAt(i) == "M") {
                 openMark = '<a style="background-color:#FF0000">'; // red
+                closeMark = "</a>";
+            }
+            if (contr.charAt(i) == "E") {
+                openMark = '<a style="background-color:#00B300">'; // green
                 closeMark = "</a>";
             }
             lastBaseMark = contr.charAt(i);
@@ -239,3 +246,63 @@ function repaintData() {
     resultData.innerHTML = retHtml
 }
 
+
+
+
+
+window.detectBrowser = detectBrowser;
+function detectBrowser() {
+    var browser = window.navigator.userAgent.toLowerCase();
+    if (browser.indexOf("edge") != -1) {
+        return "edge";
+    }
+    if (browser.indexOf("firefox") != -1) {
+        return "firefox";
+    }
+    if (browser.indexOf("chrome") != -1) {
+        return "chrome";
+    }
+    if (browser.indexOf("safari") != -1) {
+        return "safari";
+    }
+    alert("Unknown Browser: Functionality may be impaired!\n\n" + browser);
+    return browser;
+}
+
+window.saveJsonFile = saveJsonFile;
+function saveJsonFile() {
+    if (window.data == "") {
+        return;
+    }
+    var content = JSON.stringify(window.data);
+    var a = document.createElement("a");
+    document.body.appendChild(a);
+    a.style.display = "none";
+    var blob = new Blob([content], {type: "application/json"});
+    var browser = detectBrowser();
+    if (browser != "edge") {
+	    var url = window.URL.createObjectURL(blob);
+	    a.href = url;
+	    a.download = "multipleAlignment.json";
+	    a.click();
+	    window.URL.revokeObjectURL(url);
+    } else {
+        window.navigator.msSaveBlob(blob, fileName);
+    }
+    return;
+};
+
+window.loadJsonFile = loadJsonFile;
+function loadJsonFile(f){
+    var file = f.target.files[0];
+    if (file) { // && file.type.match("text/*")) {
+        var reader = new FileReader();
+        reader.onload = function(event) {
+            window.data = JSON.parse(event.target.result);
+            repaintData();
+        }
+        reader.readAsText(file);
+    } else {
+        alert("Error opening file");
+    }
+}
