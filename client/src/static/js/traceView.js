@@ -82,6 +82,7 @@ function hideElement(element) {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
+    return
     resetGlobalValues();
     var trv = document.getElementById('result-data');
     trv.innerHTML = createButtons();

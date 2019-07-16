@@ -1,6 +1,6 @@
 const API_URL = process.env.API_URL
 
-var traceView = require('./traceView');
+// var traceView = require('./traceView');
 
 const resultLink = document.getElementById('link-results')
 
@@ -44,6 +44,7 @@ function showUpload() {
 
 // TODO client-side validation
 function run(stat) {
+  window.data = ""
   resultLink.click()
   const formData = new FormData()
   if (stat == "example") {
@@ -56,9 +57,8 @@ function run(stat) {
     formData.append('referenceFile', referenceFile.files[0])
   }
   
-  //traceView.deleteContent()
+  resultData.innerHTML = ""
   hideElement(resultError)
-  traceView.deleteContent()
   showElement(resultInfo)
 
   axios
@@ -77,7 +77,6 @@ function run(stat) {
           .join('; ')
       }
       hideElement(resultInfo)
-      //traceView.deleteContent()
       showElement(resultError)
       resultError.querySelector('#error-message').textContent = errorMessage
     })
@@ -122,6 +121,8 @@ function handleSuccess() {
         }
         window.data["controlSequence"] = colSeq
     }
+    // Focus on Position
+    window.data["editPosition"] = 0
     // Loop through the alignments without reference to set C and G
     if ((window.data.hasOwnProperty("msa")) && (window.data.msa.length > 0) &&
         (window.data.hasOwnProperty("userEditedSequence")) &&
@@ -142,6 +143,9 @@ function handleSuccess() {
                      }
                      if ((baseCons != base) && (base != "-")) { // Fixme: "-" should trigger C if inside seq
                          baseCode = "C"
+                         if (window.data.editPosition == 0) {
+                             window.data.editPosition = i
+                         }
                      }
                  }
             }
@@ -153,6 +157,7 @@ function handleSuccess() {
         }
         window.data.controlSequence = colSeq
     }
+
 
 
 
@@ -239,15 +244,86 @@ function repaintData() {
             lastBaseMark = contr.charAt(i);
             outSeq += closeMark + openMark;
         }
-        outSeq += seq.charAt(i);
+        if (window.data.editPosition == i) {
+            outSeq += "<strong>" + seq.charAt(i) + "</strong>";
+        } else {
+            outSeq += seq.charAt(i);
+        }
     }
-    retHtml = '<pre id="align-overview"> ' + outSeq + closeMark + "\n</pre>";
+    retHtml = '<pre id="align-overview" onclick="selectSeqPos()"> ' + outSeq + closeMark + "\n</pre>";
+    retHtml += '  <div class="form-group">\n';
+    retHtml += '    <label for="position-field">Position:</label>\n';
+    retHtml += '    <input type="text" class="form-control" id="position-field" ';
+    retHtml += 'onChange="setFieldPosition();" value="' + window.data.editPosition + '">\n<br />\n';
+    retHtml += '    <button type="button" class="btn btn-success" onClick="decideBase(\'A\')">\n';
+    retHtml += '      <i class="fas fa-gavel" style="margin-right: 5px;"></i>\n';
+    retHtml += '      Set A\n';
+    retHtml += '    </button>\n';
+    retHtml += '    <button type="button" class="btn btn-primary" onClick="decideBase(\'C\')">\n';
+    retHtml += '      <i class="fas fa-gavel" style="margin-right: 5px;"></i>\n';
+    retHtml += '      Set C\n';
+    retHtml += '    </button>\n';
+    retHtml += '    <button type="button" class="btn btn-dark" onClick="decideBase(\'G\')">\n';
+    retHtml += '      <i class="fas fa-gavel" style="margin-right: 5px;"></i>\n';
+    retHtml += '      Set G\n';
+    retHtml += '    </button>\n';
+    retHtml += '    <button type="button" class="btn btn-danger" onClick="decideBase(\'T\')">\n';
+    retHtml += '      <i class="fas fa-gavel" style="margin-right: 5px;"></i>\n';
+    retHtml += '      Set T\n';
+    retHtml += '    </button>\n';
+    retHtml += '    <button type="button" class="btn btn-warning" onClick="decideBase(\'N\')">\n';
+    retHtml += '      <i class="fas fa-gavel" style="margin-right: 5px;"></i>\n';
+    retHtml += '      Set N\n';
+    retHtml += '    </button>\n';
+    retHtml += '    <button type="button" class="btn btn-secondary" onClick="decideBase(\'-\')">\n';
+    retHtml += '      <i class="fas fa-gavel" style="margin-right: 5px;"></i>\n';
+    retHtml += '      Set -\n';
+    retHtml += '    </button>\n';
+    retHtml += '  </div>\n';
+
+
+
 
     resultData.innerHTML = retHtml
 }
 
+window.decideBase = decideBase;
+function decideBase(base) {
+    window.data.userEditedSequence = window.data.userEditedSequence.substr(0, window.data.editPosition) + base + window.data.userEditedSequence.substr(window.data.editPosition + 1);
+    window.data.controlSequence = window.data.controlSequence.substr(0, window.data.editPosition) + "E" + window.data.controlSequence.substr(window.data.editPosition + 1);
+    repaintData();
+}
 
+window.setFieldPosition = setFieldPosition;
+function setFieldPosition() {
+    window.data.editPosition = parseInt(document.getElementById('position-field').value)
+    repaintData();
+}
 
+window.selectSeqPos = selectSeqPos;
+function selectSeqPos() {
+    var preText = document.getElementById('align-overview')
+    var sel, range;
+    sel = window.getSelection();
+    if (sel.rangeCount) {
+        range = sel.getRangeAt(0);
+        var tempRange = document.createRange();
+        tempRange.selectNodeContents(preText);
+        tempRange.setEnd(range.startContainer, range.startOffset);
+        var beforeText = tempRange.toString();
+        beforeText = beforeText.replace(/<span style="background-color:*[^" ]+">/ig, " ");
+        beforeText = beforeText.replace(/<\/span>/g, " ");
+        beforeText = beforeText.replace(/<a [^>]+>/ig, " ");
+        beforeText = beforeText.replace(/<\/a>/g, " ");
+        beforeText = beforeText.replace(/<br[ \/]*>/g, " ");
+        beforeText = beforeText.replace(/<strong>/ig, "");
+        beforeText = beforeText.replace(/<\/strong>/ig, "");
+        beforeText = beforeText.replace(/\d/ig, "");
+        beforeText = beforeText.replace(/\W/ig, "");
+        window.data.editPosition = beforeText.length;
+        repaintData();
+    }
+}
 
 
 window.detectBrowser = detectBrowser;
