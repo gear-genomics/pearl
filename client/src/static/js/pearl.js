@@ -121,8 +121,7 @@ function handleSuccess() {
         }
         window.data["controlSequence"] = colSeq
     }
-    // Focus on Position
-    window.data["editPosition"] = 0
+
     // Loop through the alignments without reference to set C and G
     if ((window.data.hasOwnProperty("msa")) && (window.data.msa.length > 0) &&
         (window.data.hasOwnProperty("userEditedSequence")) &&
@@ -133,19 +132,18 @@ function handleSuccess() {
             var baseCode = "n" // n - not set
             var baseCons = "0"
             for (var k = 0 ; k < window.data.msa.length ; k++) {
-                 if (window.data.msa[k].reference == false) {
-                     var base = window.data.msa[k].align.charAt(i)
+                 if ((window.data.msa[k].reference == false) &&
+                     (parseInt(window.data.msa[k].leadingGaps) < i) &&
+                     (parseInt(window.data.msa[k].leadingGaps) + window.data.msa[k].align.length > i)) {
+                     var base = window.data.msa[k].align.charAt(i - parseInt(window.data.msa[k].leadingGaps))
                      if (baseCode == "n") {
                          if (base != "-") {
                              baseCode = "G"
                          }
                          baseCons = base
                      }
-                     if ((baseCons != base) && (base != "-")) { // Fixme: "-" should trigger C if inside seq
+                     if (baseCons != base) {
                          baseCode = "C"
-                         if (window.data.editPosition == 0) {
-                             window.data.editPosition = i
-                         }
                      }
                  }
             }
@@ -156,6 +154,18 @@ function handleSuccess() {
             }
         }
         window.data.controlSequence = colSeq
+    }
+
+    // Focus on Position
+    window.data["editPosition"] = 0
+    if (window.data.hasOwnProperty("userEditedSequence")) {
+        for (var i = 0; i <  window.data.controlSequence.length ; i++) {
+            if ((window.data.editPosition == 0) &&
+                ((window.data.controlSequence.charAt(i) == "M") ||
+                 (window.data.controlSequence.charAt(i) == "C"))) {
+                window.data.editPosition = i
+            }
+        }
     }
 
 
