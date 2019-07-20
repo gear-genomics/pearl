@@ -39,7 +39,7 @@ def upload_file():
         # Experiment
         queryFileNames = []
         if 'showExample' in request.form.keys():
-            for i in range(1, 5): # For testing reduce from 10 to 5
+            for i in range(1, 10): # For testing reduce from 10 to 5
                 queryFileNames.append(os.path.join(PEARLWS, "sample_" + str(i) + ".abi"))
             refFileName = os.path.join(PEARLWS, "sample.fa")
         else:

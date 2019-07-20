@@ -379,20 +379,39 @@ function selectSeqPos() {
         tempRange.selectNodeContents(preText);
         tempRange.setEnd(range.startContainer, range.startOffset);
         var beforeText = tempRange.toString();
-        beforeText = beforeText.replace(/<span style="background-color:*[^" ]+">/ig, " ");
-        beforeText = beforeText.replace(/<\/span>/g, " ");
-        beforeText = beforeText.replace(/<a [^>]+>/ig, " ");
-        beforeText = beforeText.replace(/<\/a>/g, " ");
-        beforeText = beforeText.replace(/<br[ \/]*>/g, " ");
+        beforeText = beforeText.replace(/<span style="background-color:*[^" ]+">/ig, "");
+        beforeText = beforeText.replace(/<\/span>/g, "");
+        beforeText = beforeText.replace(/<a [^>]+>/ig, "");
+        beforeText = beforeText.replace(/<\/a>/g, "");
+        beforeText = beforeText.replace(/<br[ \/]*>/g, "");
         beforeText = beforeText.replace(/<strong>/ig, "");
         beforeText = beforeText.replace(/<\/strong>/ig, "");
         beforeText = beforeText.replace(/\d/ig, "");
-        beforeText = beforeText.replace(/\W/ig, "");
+        beforeText = beforeText.replace(/[ \n\t\r]/ig, "");
         window.data.editPosition = beforeText.length;
         repaintData();
     }
 }
 
+window.saveDebugFile = saveDebugFile;
+function saveDebugFile(txt) {
+    var content = txt;
+    var a = document.createElement("a");
+    document.body.appendChild(a);
+    a.style.display = "none";
+    var blob = new Blob([content], {type: "text/plain"});
+    var browser = detectBrowser();
+    if (browser != "edge") {
+	    var url = window.URL.createObjectURL(blob);
+	    a.href = url;
+	    a.download = "debug.txt";
+	    a.click();
+	    window.URL.revokeObjectURL(url);
+    } else {
+        window.navigator.msSaveBlob(blob, fileName);
+    }
+    return;
+};
 
 window.detectBrowser = detectBrowser;
 function detectBrowser() {
