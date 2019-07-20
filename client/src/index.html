@@ -50,9 +50,14 @@
         <br />
         <div class="form-group">
           <label for="referenceFile">
-            Reference FASTA file (single sequence, <code>.fa</code>)
+            Optional reference FASTA file (single sequence, <code>.fa</code>)
           </label>
           <input type="file" class="form-control-file" id="referenceFile">
+        </div>
+        <div class="form-group form-check">
+          <label class="form-check-label">
+            <input class="form-check-input" type="checkbox" id="secPeakAsConf">Treat secondary peaks as conflicts.
+          </label>
         </div>
         <br />
         <button type="submit" class="btn btn-outline-primary" id="btn-submit">

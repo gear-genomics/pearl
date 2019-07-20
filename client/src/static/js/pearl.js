@@ -106,7 +106,7 @@ function handleSuccess() {
     //   C - conflict, some traces suggest other bases
     //   M - mismatch, traces agree on different base then reference
     //   E - edited, the base was entered manually by the user
-
+    var secAsConf = document.getElementById('secPeakAsConf').checked
     if ((window.data.hasOwnProperty("msa")) && (window.data.msa.length > 0) &&
         (window.data.hasOwnProperty("gappedTraces")) && (window.data.gappedTraces.length > 0) &&
         (window.data.hasOwnProperty("userEditedSequence")) &&
@@ -126,6 +126,13 @@ function handleSuccess() {
                      }
                      if (baseCons != base) {
                          baseCode = "C"  // C - conflict
+                     }
+                     if (secAsConf == true) {
+                         var pos = i - parseInt(window.data.gappedTraces[k].leadingGaps);
+                         var secStr = window.data.gappedTraces[k].basecalls[window.data.gappedTraces[k].basecallPos[pos]]
+                         if (secStr.includes("|")) {
+                             baseCode = "C"  // C - conflict
+                         }
                      }
                  }
             }
@@ -314,7 +321,7 @@ function repaintData() {
     retHtml += '      Treat as not sequenced\n';
     retHtml += '    </button>\n';
     retHtml += '    <a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>';
-    retHtml += '    <button type="button" class="btn btn-secondary" onClick="goNextConflict()">\n';
+    retHtml += '    <button type="button" class="btn btn-outline-secondary" onClick="goNextConflict()">\n';
     retHtml += '      Jump to next conflict\n';
     retHtml += '    </button>\n';
     retHtml += '  </div><br />\n';
@@ -675,7 +682,7 @@ function createCoodinates (nr, arrPos){
         retVal += "<text x='-60' y='" + (lineYend + 111);
         retVal += "' font-family='Arial' font-size='10' fill='black' text-anchor='start'>Consensus</text>";
     } else {
-        retVal += "<text x='-60' y='" + (lineYend + 111);
+        retVal += "<text x='-60' y='" + (lineYend + 91);
         retVal += "' font-family='Arial' font-size='10' fill='black' text-anchor='start'>Consensus</text>";
     }
     for (var i = 0; i < window.data.gappedTraces[arrPos].basecallPos.length; i++) {
@@ -712,9 +719,9 @@ function createCoodinates (nr, arrPos){
             retVal += "' font-family='Arial' font-size='10' fill='black' text-anchor='end'>";
             retVal += window.data.userEditedSequence.charAt(i + parseInt(window.data.gappedTraces[arrPos].leadingGaps));
             retVal +=  "</text>";
+            retVal += "<rect x='" + (xPos - 5) + "' y='" + (lineYend + 83);
+            retVal += "' width='10' height='10' style='fill:" + refcol + ";stroke-width:3;stroke:" + refcol + "' />";
             if(window.data.hasOwnProperty('gappedReference')){
-                retVal += "<rect x='" + (xPos - 5) + "' y='" + (lineYend + 83);
-                retVal += "' width='10' height='10' style='fill:" + refcol + ";stroke-width:3;stroke:" + refcol + "' />";
                 retVal += "<text x='" + (xPos + 3) + "' y='" + (lineYend + 91);
                 retVal += "' font-family='Arial' font-size='10' fill='black' text-anchor='end'>";
                 retVal += window.data.gappedReference.charAt(i + parseInt(window.data.gappedTraces[arrPos].leadingGaps));
@@ -726,8 +733,6 @@ function createCoodinates (nr, arrPos){
                 retVal += window.data.gappedConsensus.charAt(i + parseInt(window.data.gappedTraces[arrPos].leadingGaps));
                 retVal +=  "</text>";
             } else {
-                retVal += "<rect x='" + (xPos - 5) + "' y='" + (lineYend + 103);
-                retVal += "' width='10' height='10' style='fill:" + refcol + ";stroke-width:3;stroke:" + refcol + "' />";
                 retVal += "<text x='" + (xPos + 3) + "' y='" + (lineYend + 91);
                 retVal += "' font-family='Arial' font-size='10' fill='black' text-anchor='end'>";
                 retVal += window.data.gappedConsensus.charAt(i + parseInt(window.data.gappedTraces[arrPos].leadingGaps));
