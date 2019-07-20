@@ -10,6 +10,8 @@ const exampleButton = document.getElementById('btn-example')
 exampleButton.addEventListener('click', showExample)
 const saveButton = document.getElementById('btn-save-Json')
 saveButton.addEventListener('click', saveJsonFile)
+const saveUserButton = document.getElementById('btn-save-Fasta')
+saveUserButton.addEventListener('click', saveFastaFile)
 const loadJFile = document.getElementById('inputJsonFile')
 loadJFile.addEventListener('change', loadJsonFile, false);
 
@@ -83,7 +85,7 @@ function run(stat) {
 }
 
 function handleSuccess() {
-    // Create a user edited sequence from reference or alignment
+    // Create a user edited sequence from reference or consensus
     if ((window.data.hasOwnProperty("msa")) && (window.data.msa.length > 0)) {
         for (var i = 0 ; i < window.data.msa.length ; i++) {
             if ((window.data.msa[i].hasOwnProperty("reference")) &&
@@ -105,28 +107,9 @@ function handleSuccess() {
     //   M - mismatch, traces agree on different base then reference
     //   E - edited, the base was entered manually by the user
 
-    // First paint it N or M based on reference and consensus
-    if ((window.data.hasOwnProperty("userEditedSequence")) &&
-        (window.data.hasOwnProperty("gappedConsensus"))) {
-        var colSeq = ""
-        for (var i = 0; i < window.data.userEditedSequence.length ; i++) {
-            if (window.data.userEditedSequence.charAt(i) == window.data.gappedConsensus.charAt(i)) {
-                if (window.data.userEditedSequence.charAt(i) == "-") {
-                    colSeq += "M"  // M - mismatch
-                } else {
-                    colSeq += "N"  // N - no information
-                }
-            } else {
-                colSeq += "M"  // M - mismatch
-            }
-        }
-        window.data["controlSequence"] = colSeq
-    }
-
-    // Loop through the alignments without reference to set C and G
     if ((window.data.hasOwnProperty("msa")) && (window.data.msa.length > 0) &&
+        (window.data.hasOwnProperty("gappedTraces")) && (window.data.gappedTraces.length > 0) &&
         (window.data.hasOwnProperty("userEditedSequence")) &&
-        (window.data.hasOwnProperty("controlSequence")) &&
         (window.data.hasOwnProperty("gappedConsensus"))) {
         var colSeq = ""
         for (var i = 0; i < window.data.userEditedSequence.length ; i++) {
@@ -138,20 +121,26 @@ function handleSuccess() {
                      (parseInt(window.data.msa[k].leadingGaps) + window.data.msa[k].align.length > i)) {
                      var base = window.data.msa[k].align.charAt(i - parseInt(window.data.msa[k].leadingGaps))
                      if (baseCode == "n") {
-                         if (base != "-") {
-                             baseCode = "G"
-                         }
+                         baseCode = "G"  // G - good
                          baseCons = base
                      }
                      if (baseCons != base) {
-                         baseCode = "C"
+                         baseCode = "C"  // C - conflict
                      }
                  }
             }
-            if (((baseCode == "G") || (baseCode == "C")) && (window.data.controlSequence.charAt(i) == "N")) {
-                colSeq += baseCode
+            if ((baseCode == "G") || (baseCode == "C")) {
+                if (base == window.data.userEditedSequence.charAt(i)) {
+                    colSeq += baseCode
+                } else {
+                    if (baseCode == "G") {
+                        colSeq += "M"  // M - mismatch
+                    } else {
+                        colSeq += "C"  // C - conflict
+                    }
+                }
             } else {
-                colSeq += window.data.controlSequence.charAt(i)
+                colSeq += "N"  // N - no information
             }
         }
         window.data.controlSequence = colSeq
@@ -159,15 +148,6 @@ function handleSuccess() {
 
     // Focus on Position
     window.data["editPosition"] = 0
-    if (window.data.hasOwnProperty("userEditedSequence")) {
-        for (var i = 0; i <  window.data.controlSequence.length ; i++) {
-            if ((window.data.editPosition == 0) &&
-                ((window.data.controlSequence.charAt(i) == "M") ||
-                 (window.data.controlSequence.charAt(i) == "C"))) {
-                window.data.editPosition = i
-            }
-        }
-    }
 
     // Create the trace parameters
     window.data["tp"] = {}
@@ -184,7 +164,49 @@ function handleSuccess() {
     // Cleanup Window stuff
     hideElement(resultInfo)
     hideElement(resultError)
-    repaintData()
+
+    goNextConflict()
+}
+
+window.goNextConflict = goNextConflict;
+function goNextConflict() {
+    // Find first mismatches
+    if (window.data.hasOwnProperty("controlSequence")) {
+        for (var i = 0; i <  window.data.controlSequence.length - 1; i++) {
+            var pos = window.data.editPosition + 1 + i;
+            if (pos > window.data.controlSequence.length - 1) {
+                pos -= window.data.controlSequence.length;
+            }
+            if (window.data.controlSequence.charAt(pos) == "M") {
+                window.data.editPosition = pos;
+                repaintData();
+                return;
+            }
+        }
+        for (var i = 0; i <  window.data.controlSequence.length - 1; i++) {
+            var pos = window.data.editPosition + 1 + i;
+            if (pos > window.data.controlSequence.length - 1) {
+                pos -= window.data.controlSequence.length;
+            }
+            if (window.data.controlSequence.charAt(pos) == "C") {
+                window.data.editPosition = pos;
+                repaintData();
+                return;
+            }
+        }
+        for (var i = 0; i <  window.data.controlSequence.length - 1; i++) {
+            var pos = window.data.editPosition + 1 + i;
+            if (pos > window.data.controlSequence.length - 1) {
+                pos -= window.data.controlSequence.length;
+            }
+            if (window.data.controlSequence.charAt(pos) == "E") {
+                window.data.editPosition = pos;
+                repaintData();
+                return;
+            }
+        }
+    }
+    repaintData();
 }
 
 //
@@ -286,14 +308,27 @@ function repaintData() {
     retHtml += '      <i class="fas fa-gavel" style="margin-right: 5px;"></i>\n';
     retHtml += '      Set -\n';
     retHtml += '    </button>\n';
+    retHtml += '    <a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>';
+    retHtml += '    <button type="button" class="btn btn-info" onClick="treatNotSequenced()">\n';
+    retHtml += '      <i class="fas fa-gavel" style="margin-right: 5px;"></i>\n';
+    retHtml += '      Treat as not sequenced\n';
+    retHtml += '    </button>\n';
+    retHtml += '    <a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>';
+    retHtml += '    <button type="button" class="btn btn-secondary" onClick="goNextConflict()">\n';
+    retHtml += '      Jump to next conflict\n';
+    retHtml += '    </button>\n';
     retHtml += '  </div><br />\n';
 
     // Buttons for trace navigation
     retHtml += '<div id="traceView-Buttons">';
+    retHtml += '  <button type="button" id="traceView-nav-bw-step" class="btn btn-outline-secondary" onClick="navBwStep()">&lt;&lt;</button>';
+    retHtml += '  <button type="button" id="traceView-nav-bw-bit" class="btn btn-outline-secondary" onClick="navBwOne()">&lt;</button>';
     retHtml += '  <button type="button" id="traceView-nav-zy-in" class="btn btn-outline-secondary" onClick="navZoomYin()">Bigger Peaks</button>';
     retHtml += '  <button type="button" id="traceView-nav-zy-out" class="btn btn-outline-secondary" onClick="navZoomYout()">Smaller Peaks</button>';
     retHtml += '  <button type="button" id="traceView-nav-zx-in" class="btn btn-outline-secondary" onClick="navZoomXin()">Zoom in</button>';
     retHtml += '  <button type="button" id="traceView-nav-zx-out" class="btn btn-outline-secondary" onClick="navZoomXout()">Zoom Out</button>';
+    retHtml += '  <button type="button" id="traceView-nav-fw-bit" class="btn btn-outline-secondary" onClick="navFwOne()">&gt;</button>';
+    retHtml += '  <button type="button" id="traceView-nav-fw-step" class="btn btn-outline-secondary" onClick="navFwStep()">&gt;&gt;</button>';
     retHtml += '  <a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>';
     retHtml += '  <button type="button" id="traceView-nav-hi-a" class="btn btn-outline-secondary" onClick="navHiA()"><strong>A</strong></button>';
     retHtml += '  <button type="button" id="traceView-nav-hi-c" class="btn btn-outline-secondary" onClick="navHiC()"><strong>C</strong></button>';
@@ -311,6 +346,12 @@ window.decideBase = decideBase;
 function decideBase(base) {
     window.data.userEditedSequence = window.data.userEditedSequence.substr(0, window.data.editPosition) + base + window.data.userEditedSequence.substr(window.data.editPosition + 1);
     window.data.controlSequence = window.data.controlSequence.substr(0, window.data.editPosition) + "E" + window.data.controlSequence.substr(window.data.editPosition + 1);
+    repaintData();
+}
+
+window.treatNotSequenced = treatNotSequenced;
+function treatNotSequenced() {
+    window.data.controlSequence = window.data.controlSequence.substr(0, window.data.editPosition) + "N" + window.data.controlSequence.substr(window.data.editPosition + 1);
     repaintData();
 }
 
@@ -380,6 +421,29 @@ function saveJsonFile() {
 	    var url = window.URL.createObjectURL(blob);
 	    a.href = url;
 	    a.download = "multipleAlignment.json";
+	    a.click();
+	    window.URL.revokeObjectURL(url);
+    } else {
+        window.navigator.msSaveBlob(blob, fileName);
+    }
+    return;
+};
+
+window.saveFastaFile = saveFastaFile;
+function saveFastaFile() {
+    if (window.data == "") {
+        return;
+    }
+    var content = ">user sequence\n" + window.data.userEditedSequence.replace(/-/g, "");
+    var a = document.createElement("a");
+    document.body.appendChild(a);
+    a.style.display = "none";
+    var blob = new Blob([content], {type: "text/plain"});
+    var browser = detectBrowser();
+    if (browser != "edge") {
+	    var url = window.URL.createObjectURL(blob);
+	    a.href = url;
+	    a.download = "user_sequence.fa";
 	    a.click();
 	    window.URL.revokeObjectURL(url);
     } else {
@@ -480,6 +544,42 @@ function navZoomXout() {
     SVGRepaint();
 }
 
+window.navBwStep = navBwStep;
+function navBwStep(){
+    window.data.editPosition -= 30;
+    if (window.data.editPosition < 0) {
+        window.data.editPosition = window.data.userEditedSequence.length - 1;
+    }
+    repaintData();
+}
+
+window.navBwOne = navBwOne;
+function navBwOne(){
+    window.data.editPosition -= 1;
+    if (window.data.editPosition < 0) {
+        window.data.editPosition = window.data.userEditedSequence.length - 1;
+    }
+    repaintData();
+}
+
+window.navFwOne = navFwOne;
+function navFwOne(){
+    window.data.editPosition += 1;
+    if (window.data.editPosition > window.data.userEditedSequence.length - 1) {
+        window.data.editPosition = 0;
+    }
+    repaintData();
+}
+
+window.navFwStep = navFwStep;
+function navFwStep(){
+    window.data.editPosition += 30;
+    if (window.data.editPosition > window.data.userEditedSequence.length - 1) {
+        window.data.editPosition = 0;
+    }
+    repaintData();
+}
+
 window.SVGRepaint = SVGRepaint;
 function SVGRepaint(){
     var retVal = createSVG();
@@ -535,8 +635,8 @@ function createBasics (){
 }
 
 function createCoodinates (nr, arrPos){
-    var yShift = 350 * nr + 30
-    window.data.tp.svgHeight += 350
+    var yShift = 370 * nr + 30
+    window.data.tp.svgHeight += 370
     var focusTr = window.data.gappedTraces[arrPos].basecallPos[window.data.editPosition - parseInt(window.data.gappedTraces[arrPos].leadingGaps)]
 
     var lineXst = window.data.tp.frameXst - 5;
@@ -572,6 +672,11 @@ function createCoodinates (nr, arrPos){
     if(window.data.hasOwnProperty('gappedReference')){
         retVal += "<text x='-60' y='" + (lineYend + 91);
         retVal += "' font-family='Arial' font-size='10' fill='black' text-anchor='start'>Reference</text>";
+        retVal += "<text x='-60' y='" + (lineYend + 111);
+        retVal += "' font-family='Arial' font-size='10' fill='black' text-anchor='start'>Consensus</text>";
+    } else {
+        retVal += "<text x='-60' y='" + (lineYend + 111);
+        retVal += "' font-family='Arial' font-size='10' fill='black' text-anchor='start'>Consensus</text>";
     }
     for (var i = 0; i < window.data.gappedTraces[arrPos].basecallPos.length; i++) {
         if ((parseFloat(window.data.gappedTraces[arrPos].basecallPos[i]) > startX) &&
@@ -614,6 +719,19 @@ function createCoodinates (nr, arrPos){
                 retVal += "' font-family='Arial' font-size='10' fill='black' text-anchor='end'>";
                 retVal += window.data.gappedReference.charAt(i + parseInt(window.data.gappedTraces[arrPos].leadingGaps));
                 retVal +=  "</text>";
+                retVal += "<rect x='" + (xPos - 5) + "' y='" + (lineYend + 103);
+                retVal += "' width='10' height='10' style='fill:" + refcol + ";stroke-width:3;stroke:" + refcol + "' />";
+                retVal += "<text x='" + (xPos + 3) + "' y='" + (lineYend + 111);
+                retVal += "' font-family='Arial' font-size='10' fill='black' text-anchor='end'>";
+                retVal += window.data.gappedConsensus.charAt(i + parseInt(window.data.gappedTraces[arrPos].leadingGaps));
+                retVal +=  "</text>";
+            } else {
+                retVal += "<rect x='" + (xPos - 5) + "' y='" + (lineYend + 103);
+                retVal += "' width='10' height='10' style='fill:" + refcol + ";stroke-width:3;stroke:" + refcol + "' />";
+                retVal += "<text x='" + (xPos + 3) + "' y='" + (lineYend + 91);
+                retVal += "' font-family='Arial' font-size='10' fill='black' text-anchor='end'>";
+                retVal += window.data.gappedConsensus.charAt(i + parseInt(window.data.gappedTraces[arrPos].leadingGaps));
+                retVal +=  "</text>";
             }
         }
     }
@@ -642,7 +760,7 @@ function createAllCalls(nr, arrPos){
 }
 
 function createOneCall(nr, arrPos, trace, col){
-    var yShift = 350 * nr + 30
+    var yShift = 370 * nr + 30
     var focusTr = window.data.gappedTraces[arrPos].basecallPos[window.data.editPosition - parseInt(window.data.gappedTraces[arrPos].leadingGaps)]
     var startX = focusTr - parseInt((window.data.tp.winXend - window.data.tp.winXst) / 2);
     var endX = focusTr + parseInt((window.data.tp.winXend - window.data.tp.winXst) / 2);
