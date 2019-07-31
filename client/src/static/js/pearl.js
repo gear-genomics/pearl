@@ -22,6 +22,8 @@ const resultError = document.getElementById('result-error')
 const resultData = document.getElementById('result-data')
 
 window.data = ""
+window.startZeroOne = 1
+
 
 $('#mainTab a').on('click', function(e) {
   e.preventDefault()
@@ -219,7 +221,6 @@ function goNextConflict() {
 //
 function repaintData() {
     var retHtml = ""
-    var startZeroOne = 0
     var outSeq = "\n"
     var seq = window.data.userEditedSequence
     var contr = window.data.controlSequence
@@ -238,7 +239,7 @@ function repaintData() {
             if (i != 0) {
                 outSeq += closeMark + "\n";
             }
-            var pIco = i + startZeroOne;
+            var pIco = i + window.startZeroOne;
             var iStr = pIco.toString();
             for (var j = digits; j > iStr.length ; j--) {
                 outSeq += " ";
@@ -290,7 +291,7 @@ function repaintData() {
     retHtml += '  <div class="form-group">\n';
     retHtml += '    <label for="position-field">Position:</label>\n';
     retHtml += '    <input type="text" class="form-control" id="position-field" ';
-    retHtml += 'onChange="setFieldPosition();" value="' + window.data.editPosition + '">\n<br />\n';
+    retHtml += 'onChange="setFieldPosition();" value="' + (window.data.editPosition + window.startZeroOne) + '">\n<br />\n';
     retHtml += '    <button type="button" class="btn btn-success" onClick="decideBase(\'A\')">\n';
     retHtml += '      <i class="fas fa-gavel" style="margin-right: 5px;"></i>\n';
     retHtml += '      Set A\n';
@@ -364,7 +365,7 @@ function treatNotSequenced() {
 
 window.setFieldPosition = setFieldPosition;
 function setFieldPosition() {
-    window.data.editPosition = parseInt(document.getElementById('position-field').value)
+    window.data.editPosition = parseInt(document.getElementById('position-field').value) - window.startZeroOne
     repaintData();
 }
 
