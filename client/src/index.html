@@ -50,9 +50,14 @@
         <br />
         <div class="form-group">
           <label for="referenceFile">
-            Reference FASTA file (single sequence, <code>.fa</code>)
+            Optional reference FASTA file (single sequence, <code>.fa</code>)
           </label>
           <input type="file" class="form-control-file" id="referenceFile">
+        </div>
+        <div class="form-group form-check">
+          <label class="form-check-label">
+            <input class="form-check-input" type="checkbox" id="secPeakAsConf">Treat secondary peaks as conflicts.
+          </label>
         </div>
         <br />
         <button type="submit" class="btn btn-outline-primary" id="btn-submit">
@@ -78,7 +83,15 @@
             <div class="form-group">
               <button type="submit" class="btn btn-outline-primary" id="btn-save-Json">
                 <i class="far fa-save" style="margin-right: 5px;"></i>
-                Save multiple alignment file
+                Save multiple alignment file (JSON)
+              </button>
+            </div>
+          </div>
+          <div class="col">
+            <div class="form-group">
+              <button type="submit" class="btn btn-outline-primary" id="btn-save-Fasta">
+                <i class="far fa-save" style="margin-right: 5px;"></i>
+                Save user sequence (FA)
               </button>
             </div>
           </div>
@@ -97,8 +110,27 @@
 
       <div class="tab-pane" id="help-tab">
         <h4>Application Description</h4>
-        <p> Pearl is a tool to patch a DNA references with several sanger trace files. The 
-            reference must be a fasta file (*.fa) and is displayed on top of the trace view.</p>
+        <p> Pearl is a tool to patch a DNA references with several sanger trace files. It has
+            two main applications: (Parts) of a reference sequence (fasta file, *.fa) can be
+            sequenced and Pearl highlights the conflicts and mismatches between reference
+            and the trace files. If no reference is provided, a consensus sequence is assembled
+            and used instead.<br />
+            <br />
+            Pearl provides a color-coded overview:<br />
+            light green - consensus: all traces agree on same base<br />
+            red - mismatch: traces agree on different base then reference<br />
+            orange - conflict: conflict, some traces suggest other bases<br />
+            green - edited: the base was entered manually by the user<br />
+            grey - no information: only reference data available<br />
+            <br />
+            By design, Pearl focuses only on one location, the position given below the
+            overview. A position can be selected by clicking at a position in the overview,
+            by changing the number in the position field or by navigating the trace windows.
+            <br /><br />
+            The available traces can be reviewed by the user at the given position and set
+            to a certain base. Once all mismatches and conflicts are edited by the user, the
+            sequence can be exported as fasta. The entire dataset including the traces can
+            be saved as JSON file and uploaded in the result section later.
         <h4>Accepted Input</h4>
         <p> The trace files can be provided in abi or scf trace format (*.scf, *.abi, *.ab1, 
             *.ab! and *.ab). The reference must be a fasta file (*.fa).</p>
@@ -155,7 +187,6 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-  <script src="static/js/traceView.js"></script>
   <script src="static/js/pearl.js"></script>
 </body>
 

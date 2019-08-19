@@ -39,7 +39,7 @@ def upload_file():
         # Experiment
         queryFileNames = []
         if 'showExample' in request.form.keys():
-            for i in range(1, 5): # For testing reduce from 10 to 5
+            for i in range(1, 10): # For testing reduce from 10 to 5
                 queryFileNames.append(os.path.join(PEARLWS, "sample_" + str(i) + ".abi"))
             refFileName = os.path.join(PEARLWS, "sample.fa")
         else:
@@ -62,13 +62,16 @@ def upload_file():
                 queryFileNames.append(queryFileName)
                 queryFile.save(queryFileName)
 
-            refFile = request.files['referenceFile']
-            if refFile.filename == '':
-                return jsonify(errors = [{"title": "Fasta file is missing!"}]), 400
-            if not allowed_fa_file(refFile.filename):
-                return jsonify(errors = [{"title": "Fasta file has incorrect file type!"}]), 400
-            refFileName = os.path.join(sf, "pearl_" + uuidstr + "_" + secure_filename(refFile.filename))
-            refFile.save(refFileName)
+            if 'referenceFile' not in request.files:
+                refFileName = ""
+            else:
+                refFile = request.files['referenceFile']
+                if refFile.filename == '':
+                    return jsonify(errors = [{"title": "Fasta file is missing!"}]), 400
+                if not allowed_fa_file(refFile.filename):
+                    return jsonify(errors = [{"title": "Fasta file has incorrect file type!"}]), 400
+                refFileName = os.path.join(sf, "pearl_" + uuidstr + "_" + secure_filename(refFile.filename))
+                refFile.save(refFileName)
 
         # Run sage
         outfile = os.path.join(sf, "pearl_" + uuidstr)
@@ -76,8 +79,11 @@ def upload_file():
         errfile = os.path.join(sf, "pearl_" + uuidstr + ".err")
         with open(logfile, "w") as log:
             with open(errfile, "w") as err:
+                refArr = []
+                if refFileName != "":
+                    refArr = ['-r', refFileName]
                 try: 
-                    return_code = call(['tracy', 'assemble', '-r', refFileName, '-o', outfile] + queryFileNames, stdout=log, stderr=err)
+                    return_code = call(['tracy', 'assemble', '-o', outfile] + refArr + queryFileNames, stdout=log, stderr=err)
                 except OSError as e:
                     if e.errno == os.errno.ENOENT:
                         return jsonify(errors = [{"title": "Binary ./tracy not found!"}]), 400
@@ -90,6 +96,10 @@ def upload_file():
             return jsonify(errors = [{"title": "Error in running pearl" + errInfo}]), 400
         return jsonify(data = json.loads(open(os.path.join(sf, "pearl_" + uuidstr + ".json")).read()))
     return jsonify(errors = [{"title": "Error in handling POST request!"}]), 400
+
+@app.route('/api/v1/health', methods=['GET'])
+def health():
+    return jsonify(status="OK")
 
 if __name__ == '__main__':
     app.run(host = '0.0.0.0', port=3300, debug = True, threaded=True)
