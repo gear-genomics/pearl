@@ -1,120 +1,168 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Pearl: Patching references via trace assemblies | GEAR</title>
+    <meta
+      name="description"
+      content="Patching references via trace assemblies."
+    />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.0.6/css/all.css"
+    />
+    <link rel="stylesheet" href="static/css/gear.css" />
+  </head>
 
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Pearl: Patching references via trace assemblies | GEAR</title>
-  <meta name="description" content="Patching references via trace assemblies.">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.6/css/all.css">
-  <link rel="stylesheet" href="static/css/gear.css">
-</head>
-
-<body>
-
-  <header class="px-0 py-4">
-    <div class="container">
-      <h1 class="display-4 app-name">Pearl</h1>
+  <body>
+    <header class="px-0 py-4">
+      <div class="container">
+        <h1 class="display-4 app-name">Pearl</h1>
         <p class="lead">Patching references via trace assemblies.</p>
-        <a class="plain" href="https://www-db.embl.de/EMBLPersonGroup-PersonPicture/MailForm/?recipient=ggenomics" target="_blank">
+        <a
+          class="plain"
+          href="https://www-db.embl.de/EMBLPersonGroup-PersonPicture/MailForm/?recipient=ggenomics"
+          target="_blank"
+        >
           <i class="fas fa-question"></i> Get help
         </a>
         ·
-        <a class="plain" target="_blank" href="https://github.com/gear-genomics/pearl">
+        <a
+          class="plain"
+          target="_blank"
+          href="https://github.com/gear-genomics/pearl"
+        >
           <i class="fab fa-github-alt"></i> Source
         </a>
-    </div>
-  </header>
-
-  <main class="container">
-    <ul class="nav nav-fill mb-4" id="mainTab">
-      <li class="nav-item">
-        <a class="nav-link active" href="#input-tab">Input</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#result-tab" id="link-results">Results</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#help-tab" id="link-help">Help</a>
-      </li>
-    </ul>
-    <div class="tab-content" id="main-tabs">
-      <div class="tab-pane show active" id="input-tab">
-        <div class="form-group">
-          <label for="inputFiles">
-            Chromatogram files (<code>.scf</code>, <code>.abi</code>, <code>.ab1</code>, <code>.ab!</code> or <code>.ab</code>)
-          </label>
-          <input type="file" multiple class="form-control-file" id="inputFiles">
-        </div>
-        <br />
-        <div class="form-group">
-          <label for="referenceFile">
-            Optional reference FASTA file (single sequence, <code>.fa</code>)
-          </label>
-          <input type="file" class="form-control-file" id="referenceFile">
-        </div>
-        <div class="form-group form-check">
-          <label class="form-check-label">
-            <input class="form-check-input" type="checkbox" id="secPeakAsConf">Treat secondary peaks as conflicts.
-          </label>
-        </div>
-        <br />
-        <button type="submit" class="btn btn-outline-primary" id="btn-submit">
-          <i class="fas fa-rocket" style="margin-right: 5px;"></i>
-          Launch Analysis
-        </button>
-        <button type="submit" class="btn btn-outline-primary" id="btn-example">
-          <i class="fas fa-eye" style="margin-right: 5px;"></i>
-          Show Example
-        </button>
       </div>
-      <div class="tab-pane" id="result-tab">
-        <div class="row">
-          <div class="col">
-            <div class="form-group">
-              <label for="inputJsonFile">
-                Load multiple alignment file (<code>.json</code>)
-              </label>
-              <input type="file" class="form-control-file" id="inputJsonFile">
-            </div>
-          </div>
-          <div class="col">
-            <div class="form-group">
-              <button type="submit" class="btn btn-outline-primary" id="btn-save-Json">
-                <i class="far fa-save" style="margin-right: 5px;"></i>
-                Save multiple alignment file (JSON)
-              </button>
-            </div>
-          </div>
-          <div class="col">
-            <div class="form-group">
-              <button type="submit" class="btn btn-outline-primary" id="btn-save-Fasta">
-                <i class="far fa-save" style="margin-right: 5px;"></i>
-                Save user sequence (FA)
-              </button>
-            </div>
-          </div>
-        </div>
-        <br />
-        <div id="result-info" class="alert alert-info d-none" role="alert">
-          <i class="fas fa-spinner spinner"></i>
-          Analysis is running, please be patient.
-        </div>
-        <div id="result-error" class="alert alert-danger d-none" role="alert">
-          <i class="fas fa-fire"></i>
-          <span id="error-message"></span>
-        </div>
-        <div id="result-data"></div>
-      </div>
+    </header>
 
-      <div class="tab-pane" id="help-tab">
-        <h4>Application Description</h4>
-        <p> Pearl is a tool to patch a DNA references with several sanger trace files. It has
-            two main applications: (Parts) of a reference sequence (fasta file, *.fa) can be
-            sequenced and Pearl highlights the conflicts and mismatches between reference
-            and the trace files. If no reference is provided, a consensus sequence is assembled
-            and used instead.<br />
+    <main class="container">
+      <ul class="nav nav-fill mb-4" id="mainTab">
+        <li class="nav-item">
+          <a class="nav-link active" href="#input-tab">Input</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#result-tab" id="link-results">Results</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#help-tab" id="link-help">Help</a>
+        </li>
+      </ul>
+      <div class="tab-content" id="main-tabs">
+        <div class="tab-pane show active" id="input-tab">
+          <div class="form-group">
+            <label for="inputFiles">
+              Chromatogram files (<code>.scf</code>, <code>.abi</code>,
+              <code>.ab1</code>, <code>.ab!</code> or <code>.ab</code>)
+            </label>
+            <input
+              type="file"
+              multiple
+              class="form-control-file"
+              id="inputFiles"
+            />
+          </div>
+          <br />
+          <div class="form-group">
+            <label for="referenceFile">
+              Optional reference FASTA file (single sequence, <code>.fa</code>)
+            </label>
+            <input type="file" class="form-control-file" id="referenceFile" />
+          </div>
+          <div class="form-group form-check">
+            <label class="form-check-label">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="secPeakAsConf"
+              />Treat secondary peaks as conflicts.
+            </label>
+          </div>
+          <br />
+          <button type="submit" class="btn btn-outline-primary" id="btn-submit">
+            <i class="fas fa-rocket" style="margin-right: 5px;"></i>
+            Launch Analysis
+          </button>
+          <button
+            type="submit"
+            class="btn btn-outline-primary"
+            id="btn-example"
+          >
+            <i class="fas fa-eye" style="margin-right: 5px;"></i>
+            Show Example
+          </button>
+        </div>
+        <div class="tab-pane" id="result-tab">
+          <div class="row">
+            <div class="col">
+              <div class="form-group">
+                <label for="inputJsonFile">
+                  Load multiple alignment file (<code>.json</code>)
+                </label>
+                <input
+                  type="file"
+                  class="form-control-file"
+                  id="inputJsonFile"
+                />
+              </div>
+            </div>
+            <div class="col">
+              <div class="form-group">
+                <button
+                  type="submit"
+                  class="btn btn-outline-primary"
+                  id="btn-save-Json"
+                >
+                  <i class="far fa-save" style="margin-right: 5px;"></i>
+                  Save multiple alignment file (JSON)
+                </button>
+              </div>
+            </div>
+            <div class="col">
+              <div class="form-group">
+                <button
+                  type="submit"
+                  class="btn btn-outline-primary"
+                  id="btn-save-Fasta"
+                >
+                  <i class="far fa-save" style="margin-right: 5px;"></i>
+                  Save user sequence (FA)
+                </button>
+              </div>
+            </div>
+          </div>
+          <br />
+          <div id="result-info" class="alert alert-info d-none" role="alert">
+            <i class="fas fa-spinner spinner"></i>
+            Analysis is running, please be patient.
+          </div>
+          <div id="result-error" class="alert alert-danger d-none" role="alert">
+            <i class="fas fa-fire"></i>
+            <span id="error-message"></span>
+          </div>
+          <div id="result-data"></div>
+        </div>
+
+        <div class="tab-pane" id="help-tab">
+          <h4>Application Description</h4>
+          <p>
+            Pearl is a tool to patch a DNA references with several sanger trace
+            files. It has two main applications: (Parts) of a reference sequence
+            (fasta file, *.fa) can be sequenced and Pearl highlights the
+            conflicts and mismatches between reference and the trace files. If
+            no reference is provided, a consensus sequence is assembled and used
+            instead.<br />
             <br />
             Pearl provides a color-coded overview:<br />
             light green - consensus: all traces agree on same base<br />
@@ -123,72 +171,106 @@
             green - edited: the base was entered manually by the user<br />
             grey - no information: only reference data available<br />
             <br />
-            By design, Pearl focuses only on one location, the position given below the
-            overview. A position can be selected by clicking at a position in the overview,
-            by changing the number in the position field or by navigating the trace windows.
+            By design, Pearl focuses only on one location, the position given
+            below the overview. A position can be selected by clicking at a
+            position in the overview, by changing the number in the position
+            field or by navigating the trace windows.
             <br /><br />
-            The available traces can be reviewed by the user at the given position and set
-            to a certain base. Once all mismatches and conflicts are edited by the user, the
-            sequence can be exported as fasta. The entire dataset including the traces can
-            be saved as JSON file and uploaded in the result section later.
-        <h4>Accepted Input</h4>
-        <p> The trace files can be provided in abi or scf trace format (*.scf, *.abi, *.ab1, 
-            *.ab! and *.ab). The reference must be a fasta file (*.fa).</p>
-        <h4>Sample Data</h4>
-        <p> The "Show Example" button loads nine sample trace files (click to download file  
-            <a href="static/bin/sample_1.abi">1,</a> 
-            <a href="static/bin/sample_2.abi">2,</a> 
-            <a href="static/bin/sample_3.abi">3,</a> 
-            <a href="static/bin/sample_4.abi">4,</a> 
-            <a href="static/bin/sample_5.abi">5,</a> 
-            <a href="static/bin/sample_6.abi">6,</a> 
-            <a href="static/bin/sample_7.abi">7,</a> 
-            <a href="static/bin/sample_8.abi">8,</a> 
-            <a href="static/bin/sample_9.abi">9</a> 
+            The available traces can be reviewed by the user at the given
+            position and set to a certain base. Once all mismatches and
+            conflicts are edited by the user, the sequence can be exported as
+            fasta. The entire dataset including the traces can be saved as JSON
+            file and uploaded in the result section later.
+          </p>
+
+          <h4>Accepted Input</h4>
+          <p>
+            The trace files can be provided in abi or scf trace format (*.scf,
+            *.abi, *.ab1, *.ab! and *.ab). The reference must be a fasta file
+            (*.fa).
+          </p>
+          <h4>Sample Data</h4>
+          <p>
+            The "Show Example" button loads nine sample trace files (click to
+            download file
+            <a href="static/bin/sample_1.abi">1,</a>
+            <a href="static/bin/sample_2.abi">2,</a>
+            <a href="static/bin/sample_3.abi">3,</a>
+            <a href="static/bin/sample_4.abi">4,</a>
+            <a href="static/bin/sample_5.abi">5,</a>
+            <a href="static/bin/sample_6.abi">6,</a>
+            <a href="static/bin/sample_7.abi">7,</a>
+            <a href="static/bin/sample_8.abi">8,</a>
+            <a href="static/bin/sample_9.abi">9</a>
             ) and aligns it to a sample reference fasta file
             <a href="static/bin/sample.fa">(click to download file)</a>.
-        </p>
+          </p>
+        </div>
       </div>
-    </div>
-  </main>
+    </main>
 
-  <footer>
-    <div class="container">
-      <div class="float-left">
-        <a class="plain" target="_blank" href="https://gear.embl.de">
-          GEAR ~
-          <i class="fas fa-home"></i>
-        </a>
-        ·
-        <a class="plain" target="_blank" href="https://github.com/gear-genomics">
-          <i class="fab fa-github-alt"></i>
-        </a>
-        ·
-        <a class="plain" target="_blank" href="https://gear.embl.de/terms">
-          Terms of Use
-        </a>
-        ·
-        <a class="plain" target="_blank" href="https://gear.embl.de/contact">
-          Contact Us
-        </a>
+    <footer>
+      <div class="container">
+        <div class="float-left">
+          <a class="plain" target="_blank" href="https://gear-genomics.com">
+            GEAR ~
+            <i class="fas fa-home"></i>
+          </a>
+          ·
+          <a
+            class="plain"
+            target="_blank"
+            href="https://github.com/gear-genomics"
+          >
+            <i class="fab fa-github-alt"></i>
+          </a>
+          ·
+          <a
+            class="plain"
+            target="_blank"
+            href="https://gear-genomics.com/terms"
+          >
+            Terms of Use
+          </a>
+          ·
+          <a
+            class="plain"
+            target="_blank"
+            href="https://gear-genomics.com/contact"
+          >
+            Contact Us
+          </a>
+        </div>
+        <div class="float-right">
+          Supported by
+          <a class="plain" target="_blank" href="https://www.embl.de/">
+            <img
+              class="footer-logo"
+              alt="EMBL logo"
+              src="static/img/embl.svg"
+            />
+          </a>
+        </div>
       </div>
-      <div class="float-right">
-        Hosted with
-        <i class="fas fa-heart embl-red"></i> by
-        <a class="plain" target="_blank" href="https://www.embl.de/">
-          <img class="footer-logo" alt="EMBL logo" src="static/img/embl.svg">
-        </a>
-      </div>
-    </div>
-  </footer>
+    </footer>
 
-  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+      integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+      integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"
+    ></script>
 
-  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-  <script src="static/js/pearl.js"></script>
-</body>
-
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="static/js/pearl.js"></script>
+  </body>
 </html>
-
