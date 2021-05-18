@@ -24,7 +24,7 @@ def allowed_trace_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in set(['scf','abi','ab1','ab!','ab'])
 
 def allowed_fa_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in set(['fa'])
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in set(['fasta', 'fa'])
 
 @app.route('/api/v1/upload', methods=['POST'])
 def upload_file():
