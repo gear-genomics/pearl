@@ -88,9 +88,10 @@ function run(stat) {
 
 function handleSuccess() {
     // Create a user edited sequence from reference or consensus
-    if ((window.data.hasOwnProperty("msa")) && (window.data.msa.length > 0)) {
+    if ((window.data) && (window.data.hasOwnProperty("msa")) && (window.data.msa.length > 0)) {
         for (var i = 0 ; i < window.data.msa.length ; i++) {
-            if ((window.data.msa[i].hasOwnProperty("reference")) &&
+            if ((window.data.msa[i]) &&
+		(window.data.msa[i].hasOwnProperty("reference")) &&
                 (window.data.msa[i].reference == true) &&
                 (window.data.msa[i].hasOwnProperty("align"))) {
                 window.data["userEditedSequence"] = (' ' + window.data.msa[i].align).slice(1);
@@ -109,7 +110,7 @@ function handleSuccess() {
     //   M - mismatch, traces agree on different base then reference
     //   E - edited, the base was entered manually by the user
     var secAsConf = document.getElementById('secPeakAsConf').checked
-    if ((window.data.hasOwnProperty("msa")) && (window.data.msa.length > 0) &&
+    if ((window.data) && (window.data.hasOwnProperty("msa")) && (window.data.msa.length > 0) &&
         (window.data.hasOwnProperty("gappedTraces")) && (window.data.gappedTraces.length > 0) &&
         (window.data.hasOwnProperty("userEditedSequence")) &&
         (window.data.hasOwnProperty("gappedConsensus"))) {
@@ -180,7 +181,7 @@ function handleSuccess() {
 window.goNextConflict = goNextConflict;
 function goNextConflict() {
     // Find first mismatches
-    if (window.data.hasOwnProperty("controlSequence")) {
+    if ( (window.data) && (window.data.hasOwnProperty("controlSequence")) ) {
         for (var i = 0; i <  window.data.controlSequence.length - 1; i++) {
             var pos = window.data.editPosition + 1 + i;
             if (pos > window.data.controlSequence.length - 1) {
@@ -681,7 +682,7 @@ function createCoodinates (nr, arrPos){
     retVal += "' font-family='Arial' font-size='18' fill='black' text-anchor='start'>";
     var sampleName = window.data.gappedTraces[arrPos].traceFileName;
     sampleName = sampleName.replace(/pearl_[^_]+_/g, "");
-    if(window.data.msa[arrPos].hasOwnProperty('forward')){
+    if ((window.data.msa[arrPos]) && (window.data.msa[arrPos].hasOwnProperty('forward'))) {
         if(window.data.msa[arrPos].forward == true) {
             sampleName += " - forward";
         } else {
@@ -696,7 +697,7 @@ function createCoodinates (nr, arrPos){
     var endX = focusTr + parseInt((window.data.tp.winXend - window.data.tp.winXst) / 2);
     retVal += "<text x='-60' y='" + (lineYend + 71);
     retVal += "' font-family='Arial' font-size='10' fill='black' text-anchor='start'>User Seq</text>";
-    if(window.data.hasOwnProperty('gappedReference')){
+    if ((window.data) && (window.data.hasOwnProperty('gappedReference'))) {
         retVal += "<text x='-60' y='" + (lineYend + 91);
         retVal += "' font-family='Arial' font-size='10' fill='black' text-anchor='start'>Reference</text>";
         retVal += "<text x='-60' y='" + (lineYend + 111);
@@ -741,7 +742,7 @@ function createCoodinates (nr, arrPos){
             retVal +=  "</text>";
             retVal += "<rect x='" + (xPos - 5) + "' y='" + (lineYend + 83);
             retVal += "' width='10' height='10' style='fill:" + refcol + ";stroke-width:3;stroke:" + refcol + "' />";
-            if(window.data.hasOwnProperty('gappedReference')){
+            if ((window.data) && (window.data.hasOwnProperty('gappedReference'))) {
                 retVal += "<text x='" + (xPos + 3) + "' y='" + (lineYend + 91);
                 retVal += "' font-family='Arial' font-size='10' fill='black' text-anchor='end'>";
                 retVal += window.data.gappedReference.charAt(i + parseInt(window.data.gappedTraces[arrPos].leadingGaps));
