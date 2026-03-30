@@ -325,8 +325,6 @@ function selectSeqPos() {
         var beforeText = tempRange.toString();
         beforeText = beforeText.replace(/<span style="background-color:*[^" ]+">/ig, "");
         beforeText = beforeText.replace(/<\/span>/g, "");
-        beforeText = beforeText.replace(/<a [^>]+>/ig, "");
-	beforeText = beforeText.replace(/<\/a>/g, "");
         beforeText = beforeText.replace(/<br[ \/]*>/g, "");
         beforeText = beforeText.replace(/<strong>/ig, "");
         beforeText = beforeText.replace(/<\/strong>/ig, "");
