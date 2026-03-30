@@ -151,7 +151,63 @@
             <i class="fas fa-fire"></i>
             <span id="error-message"></span>
           </div>
-          <div id="result-data"></div>
+	            <div id="result-data" class="d-none">
+            <pre id="align-overview" onclick="selectSeqPos()"></pre>
+            <div class="form-group">
+              <label for="position-field">Position:</label>
+              <input type="text" class="form-control" id="position-field" onChange="setFieldPosition();"><br />
+              <button type="button" class="btn btn-success" onClick="decideBase('A')">
+                <i class="fas fa-gavel" style="margin-right: 5px;"></i>
+                Set A
+              </button>
+              <button type="button" class="btn btn-primary" onClick="decideBase('C')">
+                <i class="fas fa-gavel" style="margin-right: 5px;"></i>
+                Set C
+              </button>
+              <button type="button" class="btn btn-dark" onClick="decideBase('G')">
+                <i class="fas fa-gavel" style="margin-right: 5px;"></i>
+                Set G
+              </button>
+              <button type="button" class="btn btn-danger" onClick="decideBase('T')">
+                <i class="fas fa-gavel" style="margin-right: 5px;"></i>
+                Set T
+              </button>
+              <button type="button" class="btn btn-warning" onClick="decideBase('N')">
+                <i class="fas fa-gavel" style="margin-right: 5px;"></i>
+                Set N
+              </button>
+              <button type="button" class="btn btn-secondary" onClick="decideBase('-')">
+                <i class="fas fa-gavel" style="margin-right: 5px;"></i>
+                Set -
+              </button>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              <button type="button" class="btn btn-info" onClick="treatNotSequenced()">
+                <i class="fas fa-gavel" style="margin-right: 5px;"></i>
+                Treat as not sequenced
+              </button>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              <button type="button" class="btn btn-outline-secondary" onClick="goNextConflict()">
+                Jump to next conflict
+              </button>
+            </div><br />
+            <div id="traceView-Buttons">
+              <button type="button" class="btn btn-outline-secondary" onClick="navBwStep()">&lt;&lt;</button>
+              <button type="button" class="btn btn-outline-secondary" onClick="navBwOne()">&lt;</button>
+              <button type="button" class="btn btn-outline-secondary" onClick="navZoomYin()">Bigger Peaks</button>
+              <button type="button" class="btn btn-outline-secondary" onClick="navZoomYout()">Smaller Peaks</button>
+              <button type="button" class="btn btn-outline-secondary" onClick="navZoomXin()">Zoom in</button>
+              <button type="button" class="btn btn-outline-secondary" onClick="navZoomXout()">Zoom Out</button>
+              <button type="button" class="btn btn-outline-secondary" onClick="navFwOne()">&gt;</button>
+              <button type="button" class="btn btn-outline-secondary" onClick="navFwStep()">&gt;&gt;</button>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              <button type="button" class="btn btn-outline-secondary" onClick="navHiA()"><strong>A</strong></button>
+              <button type="button" class="btn btn-outline-secondary" onClick="navHiC()"><strong>C</strong></button>
+              <button type="button" class="btn btn-outline-secondary" onClick="navHiG()"><strong>G</strong></button>
+              <button type="button" class="btn btn-outline-secondary" onClick="navHiT()"><strong>T</strong></button>
+              <button type="button" class="btn btn-outline-secondary" onClick="navHiN()">ACGT</button>
+            </div>
+            <img id="traceView-Traces" alt="Trace-SVG" style="display:none;"/>
+          </div>
         </div>
 
         <div class="tab-pane" id="help-tab">

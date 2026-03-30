@@ -60,8 +60,8 @@ function run(stat) {
     }
     formData.append('referenceFile', referenceFile.files[0])
   }
-  
-  resultData.innerHTML = ""
+
+  hideElement(resultData)
   hideElement(resultError)
   showElement(resultInfo)
 
@@ -221,7 +221,6 @@ function goNextConflict() {
 
 //
 function repaintData() {
-    var retHtml = ""
     var outSeq = "\n"
     var seq = window.data.userEditedSequence
     var contr = window.data.controlSequence
@@ -260,24 +259,24 @@ function repaintData() {
 
         if (contr.charAt(i) != lastBaseMark) {
             if (contr.charAt(i) == "N") {
-                openMark = '<a style="background-color:#F2F2F2">'; // grey
-                closeMark = "</a>";
+                openMark = '<span style="background-color:#F2F2F2">'; // grey
+                closeMark = "</span>";
             }
             if (contr.charAt(i) == "G") {
-                openMark = '<a style="background-color:#CCFFCC">'; // green
-                closeMark = "</a>";
+                openMark = '<span style="background-color:#CCFFCC">'; // green
+                closeMark = "</span>";
             }
             if (contr.charAt(i) == "C") {
-                openMark = '<a style="background-color:#FF9900">'; // orange
-                closeMark = "</a>";
+                openMark = '<span style="background-color:#FF9900">'; // orange
+                closeMark = "</span>";
             }
             if (contr.charAt(i) == "M") {
-                openMark = '<a style="background-color:#FF0000">'; // red
-                closeMark = "</a>";
+                openMark = '<span style="background-color:#FF0000">'; // red
+                closeMark = "</span>";
             }
             if (contr.charAt(i) == "E") {
-                openMark = '<a style="background-color:#00B300">'; // green
-                closeMark = "</a>";
+                openMark = '<span style="background-color:#00B300">'; // green
+                closeMark = "</span>";
             }
             lastBaseMark = contr.charAt(i);
             outSeq += closeMark + openMark;
@@ -288,66 +287,9 @@ function repaintData() {
             outSeq += seq.charAt(i);
         }
     }
-    retHtml = '<pre id="align-overview" onclick="selectSeqPos()"> ' + outSeq + closeMark + "\n</pre>";
-    retHtml += '  <div class="form-group">\n';
-    retHtml += '    <label for="position-field">Position:</label>\n';
-    retHtml += '    <input type="text" class="form-control" id="position-field" ';
-    retHtml += 'onChange="setFieldPosition();" value="' + (window.data.editPosition + window.startZeroOne) + '">\n<br />\n';
-    retHtml += '    <button type="button" class="btn btn-success" onClick="decideBase(\'A\')">\n';
-    retHtml += '      <i class="fas fa-gavel" style="margin-right: 5px;"></i>\n';
-    retHtml += '      Set A\n';
-    retHtml += '    </button>\n';
-    retHtml += '    <button type="button" class="btn btn-primary" onClick="decideBase(\'C\')">\n';
-    retHtml += '      <i class="fas fa-gavel" style="margin-right: 5px;"></i>\n';
-    retHtml += '      Set C\n';
-    retHtml += '    </button>\n';
-    retHtml += '    <button type="button" class="btn btn-dark" onClick="decideBase(\'G\')">\n';
-    retHtml += '      <i class="fas fa-gavel" style="margin-right: 5px;"></i>\n';
-    retHtml += '      Set G\n';
-    retHtml += '    </button>\n';
-    retHtml += '    <button type="button" class="btn btn-danger" onClick="decideBase(\'T\')">\n';
-    retHtml += '      <i class="fas fa-gavel" style="margin-right: 5px;"></i>\n';
-    retHtml += '      Set T\n';
-    retHtml += '    </button>\n';
-    retHtml += '    <button type="button" class="btn btn-warning" onClick="decideBase(\'N\')">\n';
-    retHtml += '      <i class="fas fa-gavel" style="margin-right: 5px;"></i>\n';
-    retHtml += '      Set N\n';
-    retHtml += '    </button>\n';
-    retHtml += '    <button type="button" class="btn btn-secondary" onClick="decideBase(\'-\')">\n';
-    retHtml += '      <i class="fas fa-gavel" style="margin-right: 5px;"></i>\n';
-    retHtml += '      Set -\n';
-    retHtml += '    </button>\n';
-    retHtml += '    <a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>';
-    retHtml += '    <button type="button" class="btn btn-info" onClick="treatNotSequenced()">\n';
-    retHtml += '      <i class="fas fa-gavel" style="margin-right: 5px;"></i>\n';
-    retHtml += '      Treat as not sequenced\n';
-    retHtml += '    </button>\n';
-    retHtml += '    <a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>';
-    retHtml += '    <button type="button" class="btn btn-outline-secondary" onClick="goNextConflict()">\n';
-    retHtml += '      Jump to next conflict\n';
-    retHtml += '    </button>\n';
-    retHtml += '  </div><br />\n';
-
-    // Buttons for trace navigation
-    retHtml += '<div id="traceView-Buttons">';
-    retHtml += '  <button type="button" id="traceView-nav-bw-step" class="btn btn-outline-secondary" onClick="navBwStep()">&lt;&lt;</button>';
-    retHtml += '  <button type="button" id="traceView-nav-bw-bit" class="btn btn-outline-secondary" onClick="navBwOne()">&lt;</button>';
-    retHtml += '  <button type="button" id="traceView-nav-zy-in" class="btn btn-outline-secondary" onClick="navZoomYin()">Bigger Peaks</button>';
-    retHtml += '  <button type="button" id="traceView-nav-zy-out" class="btn btn-outline-secondary" onClick="navZoomYout()">Smaller Peaks</button>';
-    retHtml += '  <button type="button" id="traceView-nav-zx-in" class="btn btn-outline-secondary" onClick="navZoomXin()">Zoom in</button>';
-    retHtml += '  <button type="button" id="traceView-nav-zx-out" class="btn btn-outline-secondary" onClick="navZoomXout()">Zoom Out</button>';
-    retHtml += '  <button type="button" id="traceView-nav-fw-bit" class="btn btn-outline-secondary" onClick="navFwOne()">&gt;</button>';
-    retHtml += '  <button type="button" id="traceView-nav-fw-step" class="btn btn-outline-secondary" onClick="navFwStep()">&gt;&gt;</button>';
-    retHtml += '  <a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</a>';
-    retHtml += '  <button type="button" id="traceView-nav-hi-a" class="btn btn-outline-secondary" onClick="navHiA()"><strong>A</strong></button>';
-    retHtml += '  <button type="button" id="traceView-nav-hi-c" class="btn btn-outline-secondary" onClick="navHiC()"><strong>C</strong></button>';
-    retHtml += '  <button type="button" id="traceView-nav-hi-g" class="btn btn-outline-secondary" onClick="navHiG()"><strong>G</strong></button>';
-    retHtml += '  <button type="button" id="traceView-nav-hi-t" class="btn btn-outline-secondary" onClick="navHiT()"><strong>T</strong></button>';
-    retHtml += '  <button type="button" id="traceView-nav-hi-n" class="btn btn-outline-secondary" onClick="navHiN()">ACGT</button>';
-    retHtml += '</div>';
-    retHtml += '<div id="traceView-Traces"></div>';
-
-    resultData.innerHTML = retHtml
+    document.getElementById('align-overview').innerHTML = ' ' + outSeq + closeMark + "\n"
+    document.getElementById('position-field').value = window.data.editPosition + window.startZeroOne
+    showElement(resultData)
     SVGRepaint()
 }
 
@@ -384,7 +326,7 @@ function selectSeqPos() {
         beforeText = beforeText.replace(/<span style="background-color:*[^" ]+">/ig, "");
         beforeText = beforeText.replace(/<\/span>/g, "");
         beforeText = beforeText.replace(/<a [^>]+>/ig, "");
-        beforeText = beforeText.replace(/<\/a>/g, "");
+	beforeText = beforeText.replace(/<\/a>/g, "");
         beforeText = beforeText.replace(/<br[ \/]*>/g, "");
         beforeText = beforeText.replace(/<strong>/ig, "");
         beforeText = beforeText.replace(/<\/strong>/ig, "");
@@ -622,16 +564,15 @@ function showSVG(svg) {
     retVal = retVal.replace(regEx2, "%3E");
     var regEx3 = /#/g;
     retVal = retVal.replace(regEx3, "%23");
-    retVal = '<img src="data:image/svg+xml,' + retVal + '" alt="Trace-SVG">';
-    var sectionResults = document.getElementById('traceView-Traces')
-    sectionResults.innerHTML = retVal;
+    var img = document.getElementById('traceView-Traces');
+    img.src = 'data:image/svg+xml,' + retVal
+    img.style.display = '';
 }
 
 function createSVG() {
     var retVal = createBasics();
     // Only paint traces with information
     var count = 0;
-      //  for (var i = 0; i < window.data.userEditedSequence.length ; i++) {
     for (var k = 0 ; k < window.data.gappedTraces.length ; k++) {
          if ((parseInt(window.data.gappedTraces[k].leadingGaps) < window.data.editPosition) &&
              (parseInt(window.data.gappedTraces[k].leadingGaps) + window.data.gappedTraces[k].basecallPos.length > window.data.editPosition)) {
